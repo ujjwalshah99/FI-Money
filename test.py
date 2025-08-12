@@ -32,7 +32,7 @@ def test_register_user():
     Expected status codes are 201 (created) or 400/409 (conflict if user exists).
     """
     unique_id = generate_unique_id()
-    payload = {"username": f"testuser_{unique_id}", "password": "password123"}
+    payload = {"username": f"testuser_{unique_id}", "password": "test123"}
     res = requests.post(f"{BASE_URL}/auth/register", json=payload)
     passed = res.status_code in [201, 400, 409]
     print_result("User Registration", passed, "201, 400, or 409", res.status_code, payload, res.text)
@@ -45,8 +45,8 @@ def test_login(username=None):
     Returns the token for authenticated requests.
     """
     # Use provided username or fallback to existing user
-    test_username = username if username else "UJJWAL"
-    payload = {"username": test_username, "password": "password123"}
+    test_username = username if username else "uuj"
+    payload = {"username": test_username, "password": "test123"}
     res = requests.post(f"{BASE_URL}/auth/login", json=payload)
     token = None
     passed = False
@@ -67,7 +67,7 @@ def test_login(username=None):
 def test_add_product(token):
     """
     Tests adding a new product.
-    Must include x-auth-token header with token.
+    Must include Authorization header with token.
     Returns product_id on success.
     """
     if not token:
@@ -84,7 +84,7 @@ def test_add_product(token):
         "quantity": 40,
         "price": 49.99
     }
-    headers = {"x-auth-token": token}
+    headers = {"Authorization": "bearer " + token}
     res = requests.post(f"{BASE_URL}/products", json=payload, headers=headers)
     product_id = None
     passed = res.status_code in [201, 400]  # Accept 400 if product exists
@@ -114,7 +114,7 @@ def get_existing_product_id(token):
     if not token:
         return None
         
-    headers = {"x-auth-token": token}
+    headers = {"Authorization": "bearer " + token}
     res = requests.get(f"{BASE_URL}/products", headers=headers)
     
     if res.status_code == 200:
@@ -134,7 +134,7 @@ def get_existing_product_id(token):
 def test_update_quantity(token, product_id):
     """
     Tests updating the quantity for a specific product.
-    Uses x-auth-token header.
+    Uses Authorization header.
     """
     if not token:
         print_result("Update Quantity", False, "valid token", "no token provided")
@@ -149,7 +149,7 @@ def test_update_quantity(token, product_id):
 
     new_quantity = 25
     payload = {"quantity": new_quantity}
-    headers = {"x-auth-token": token}
+    headers = {"Authorization": "bearer " + token}
     res = requests.put(f"{BASE_URL}/products/{product_id}/quantity", json=payload, headers=headers)
     passed = res.status_code == 200
     if passed:
@@ -169,13 +169,13 @@ def test_update_quantity(token, product_id):
 def test_get_products(token):
     """
     Tests fetching the list of products.
-    Uses x-auth-token header.
+    Uses Authorization header.
     """
     if not token:
         print_result("Get Products", False, "valid token", "no token provided")
         return
         
-    headers = {"x-auth-token": token}
+    headers = {"Authorization": "bearer " + token}
     res = requests.get(f"{BASE_URL}/products", headers=headers)
     passed = res.status_code == 200
     if passed:
@@ -205,7 +205,7 @@ def run_all_tests():
 
     if not token:
         print("Login failed. Trying with existing user 'ujjwal'...")
-        token = test_login("ujjwal")
+        token = test_login("uuj")
         
     if not token:
         print("All login attempts failed. Skipping authenticated tests.")
